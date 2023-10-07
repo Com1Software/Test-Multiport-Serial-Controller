@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	
 	"strings"
 
 	"go.bug.st/serial"
@@ -11,8 +10,8 @@ import (
 
 func main() {
 	fmt.Println("Test Multiport Serial Controller")
-
-	// Retrieve the port list
+	gpsport := ""
+	rcport := ""
 	ports, err := serial.GetPortsList()
 	if err != nil {
 		log.Fatal(err)
@@ -20,49 +19,58 @@ func main() {
 	if len(ports) == 0 {
 		log.Fatal("No Serial ports found!")
 	}
-
-	// Print the list of detected ports
 	for _, port := range ports {
 		fmt.Printf("Found port: %v\n", port)
 	}
-
-	// Open the first serial port detected at 9600bps N81
 	mode := &serial.Mode{
 		BaudRate: 9600,
 		Parity:   serial.NoParity,
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
 	}
-	port, err := serial.Open(ports[0], mode)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for {
-
+	for x := 0; x < len(ports); x++ {
+		port, err := serial.Open(ports[x], mode)
+		if err != nil {
+			log.Fatal(err)
+		}
 		line := ""
 		buff := make([]byte, 1)
-	
-		on := true
-		for on != false {
-			line = ""
-			for {
-				n, err := port.Read(buff)
-				if err != nil {
-					log.Fatal(err)
-				}
-				if n == 0 {
-					fmt.Println("\nEOF")
-					break
-				}
-				line = line + string(buff[:n])
-				if strings.Contains(string(buff[:n]), "\n") {
-					break
-				}
-
+		for {
+			n, err := port.Read(buff)
+			if err != nil {
+				log.Fatal(err)
 			}
-					fmt.Println(line)
-
+			if n == 0 {
+				port.Close()
+				break
 			}
+			line = line + string(buff[:n])
+			if strings.Contains(string(buff[:n]), "\n") {
+				port.Close()
+				break
+			}
+
 		}
+		if len(line) > 3 {
+			switch {
+			case line[0:3] == "$GP":
+				gpsport = ports[x]
+			case line[0:3] == "CH1":
+				rcport = ports[x]
+			}
+
+		}
+
 	}
+	if len(gpsport) > 0 {
+		fmt.Printf("GPS Port %s\n", gpsport)
+	} else {
+		fmt.Printf("GPS Port Not Found\n")
+	}
+	if len(rcport) > 0 {
+		fmt.Printf("RC Port %s\n", rcport)
+	} else {
+		fmt.Printf("RC Port Not Found\n")
+	}
+
+}
