@@ -9,3 +9,5 @@ https://pkg.go.dev/github.com/albenik/go-serial
 https://pkg.go.dev/github.com/tarm/serial
 
 https://github.com/jacobsa/go-serial
+
+https://forums.raspberrypi.com/viewtopic.php?t=317369
