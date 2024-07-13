@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	"go.bug.st/serial"
@@ -34,11 +33,7 @@ func main() {
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
 	}
-	mctl := 0
 
-	headingctl := false
-
-	pos := 0
 	for x := 0; x < len(ports); x++ {
 		port, err := serial.Open(ports[x], mode)
 		if err != nil {
@@ -59,49 +54,19 @@ func main() {
 			src := []byte(string(buff))
 			encodedStr := hex.EncodeToString(src)
 			if encodedStr == "55" {
-				mctl = 1
-				pos = 0
 				imuport = ports[x]
-			}
-			if encodedStr == "53" && mctl == 1 {
-				fmt.Println("")
-				mctl = 2
-			}
-
-			if mctl == 2 {
-				pos++
-
-				decimal, err := strconv.ParseInt(encodedStr, 16, 32)
-				if err != nil {
-					fmt.Println(err)
-				}
-
-				if pos == 7 {
-					fmt.Printf(" zL= %d", decimal)
-					if headingctl {
-
-						heading = GetHeading(decimal)
-					} else {
-						heading = GetHeading(decimal)
-					}
-
-					fmt.Printf(" Heading= %d", heading)
-
-				}
 				port.Close()
 				break
 			}
-			if mctl == 0 {
-				line = line + string(buff[:n])
-				if strings.Contains(string(buff[:n]), "\n") {
-					port.Close()
-					break
-				}
+
+			line = line + string(buff[:n])
+			if strings.Contains(string(buff[:n]), "\n") {
+				port.Close()
+				break
 			}
 
 		}
 		if len(line) > 3 {
-			fmt.Println(line)
 			switch {
 			case line[0:3] == "$GP":
 				gpsport = ports[x]
