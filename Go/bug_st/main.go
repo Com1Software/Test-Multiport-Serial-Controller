@@ -79,16 +79,31 @@ func main() {
 	}
 	if len(gpsport) > 0 {
 		fmt.Printf("GPS Port %s\n", gpsport)
+		porta, erra := serial.Open(gpsport, mode)
+		if erra != nil {
+			log.Fatal(erra)
+		}
+		porta.Close()
 	} else {
 		fmt.Printf("GPS Port Not Found\n")
 	}
 	if len(imuport) > 0 {
 		fmt.Printf("IMU Port %s\n", imuport)
+		portb, errb := serial.Open(imuport, mode)
+		if errb != nil {
+			log.Fatal(errb)
+		}
+		portb.Close()
 	} else {
 		fmt.Printf("IMU Port Not Found\n")
 	}
 	if len(rcport) > 0 {
 		fmt.Printf("RC Port %s\n", rcport)
+		portc, errc := serial.Open(rcport, mode)
+		if errc != nil {
+			log.Fatal(errc)
+		}
+		portc.Close()
 	} else {
 		fmt.Printf("RC Port Not Found\n")
 	}
