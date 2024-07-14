@@ -35,75 +35,147 @@ func main() {
 	}
 
 	for x := 0; x < len(ports); x++ {
-		port, err := serial.Open(ports[x], mode)
-		if err != nil {
-			log.Fatal(err)
-		}
-		line := ""
-		buff := make([]byte, 1)
-		for {
-			n, err := port.Read(buff)
+		switch {
+		case x == 0:
+			porta, err := serial.Open(ports[x], mode)
 			if err != nil {
 				log.Fatal(err)
 			}
-			if n == 0 {
-				port.Close()
-				break
+			line := ""
+			buff := make([]byte, 1)
+			for {
+				n, err := porta.Read(buff)
+				if err != nil {
+					log.Fatal(err)
+				}
+				if n == 0 {
+					porta.Close()
+					break
+				}
+
+				src := []byte(string(buff))
+				encodedStr := hex.EncodeToString(src)
+				if encodedStr == "55" {
+					imuport = ports[x]
+					porta.Close()
+					break
+				}
+
+				line = line + string(buff[:n])
+				if strings.Contains(string(buff[:n]), "\n") {
+					porta.Close()
+					break
+				}
+
+			}
+			if len(line) > 3 {
+				switch {
+				case line[0:3] == "$GP":
+					gpsport = ports[x]
+				case line[0:3] == "CH1":
+					rcport = ports[x]
+				}
+
 			}
 
-			src := []byte(string(buff))
-			encodedStr := hex.EncodeToString(src)
-			if encodedStr == "55" {
-				imuport = ports[x]
-				port.Close()
-				break
+		case x == 1:
+			portb, err := serial.Open(ports[x], mode)
+			if err != nil {
+				log.Fatal(err)
 			}
+			line := ""
+			buff := make([]byte, 1)
+			for {
+				n, err := portb.Read(buff)
+				if err != nil {
+					log.Fatal(err)
+				}
+				if n == 0 {
+					portb.Close()
+					break
+				}
 
-			line = line + string(buff[:n])
-			if strings.Contains(string(buff[:n]), "\n") {
-				port.Close()
-				break
+				src := []byte(string(buff))
+				encodedStr := hex.EncodeToString(src)
+				if encodedStr == "55" {
+					imuport = ports[x]
+					portb.Close()
+					break
+				}
+
+				line = line + string(buff[:n])
+				if strings.Contains(string(buff[:n]), "\n") {
+					portb.Close()
+					break
+				}
+
 			}
+			if len(line) > 3 {
+				switch {
+				case line[0:3] == "$GP":
+					gpsport = ports[x]
+				case line[0:3] == "CH1":
+					rcport = ports[x]
+				}
 
-		}
-		if len(line) > 3 {
-			switch {
-			case line[0:3] == "$GP":
-				gpsport = ports[x]
-			case line[0:3] == "CH1":
-				rcport = ports[x]
 			}
+		case x == 3:
+			portc, err := serial.Open(ports[x], mode)
+			if err != nil {
+				log.Fatal(err)
+			}
+			line := ""
+			buff := make([]byte, 1)
+			for {
+				n, err := portc.Read(buff)
+				if err != nil {
+					log.Fatal(err)
+				}
+				if n == 0 {
+					portc.Close()
+					break
+				}
 
+				src := []byte(string(buff))
+				encodedStr := hex.EncodeToString(src)
+				if encodedStr == "55" {
+					imuport = ports[x]
+					portc.Close()
+					break
+				}
+
+				line = line + string(buff[:n])
+				if strings.Contains(string(buff[:n]), "\n") {
+					portc.Close()
+					break
+				}
+
+			}
+			if len(line) > 3 {
+				switch {
+				case line[0:3] == "$GP":
+					gpsport = ports[x]
+				case line[0:3] == "CH1":
+					rcport = ports[x]
+				}
+
+			}
 		}
 
 	}
 	if len(gpsport) > 0 {
 		fmt.Printf("GPS Port %s\n", gpsport)
-		porta, erra := serial.Open(gpsport, mode)
-		if erra != nil {
-			log.Fatal(erra)
-		}
-		porta.Close()
 	} else {
 		fmt.Printf("GPS Port Not Found\n")
 	}
 	if len(imuport) > 0 {
 		fmt.Printf("IMU Port %s\n", imuport)
-		portb, errb := serial.Open(imuport, mode)
-		if errb != nil {
-			log.Fatal(errb)
-		}
-		portb.Close()
+
 	} else {
 		fmt.Printf("IMU Port Not Found\n")
 	}
 	if len(rcport) > 0 {
 		fmt.Printf("RC Port %s\n", rcport)
-		portc, errc := serial.Open(rcport, mode)
-		if errc != nil {
-			log.Fatal(errc)
-		}
-		portc.Close()
 	} else {
 		fmt.Printf("RC Port Not Found\n")
 	}
